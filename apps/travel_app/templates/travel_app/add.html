@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load staticfiles %}
+    <!-- Compiled and minified CSS -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+
+      <!-- Compiled and minified JavaScript -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+
+    <title>Add a Trip</title>
+  </head>
+
+<style>
+div {
+  width: 600px;
+  height: 700px;
+  border: 4px solid black;
+  margin: auto;
+  padding: 30px;
+  background-color: #e0f2f1
+}
+</style>
+
+  <body bgcolor= '#004d40'>
+    {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li>{{message}}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div>
+      <h1>Add a Trip</h1>
+      <form class="" action="{% url 'travel:process' %}" method="post">
+        {% csrf_token %}
+        Destinaton: <input type="text" name="destination" >
+        Description: <input type="text" name="plan" >
+        Travel Date From: <input type="date" name="start_date">
+        Travel Date To: <input type="date" name="end_date"><br><br>
+        <input type="submit" value="Add" class="waves-effect waves-light btn"><br><br>
+        <a href="{% url 'travel:index' %}">Home</a><br><br>
+        <a href="{% url 'login:logout' %}">Logout</a>
+      </form>
+    </div>
+  </body>
+</html>

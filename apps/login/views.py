@@ -1,53 +1,39 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
-
 from .models import User
+from django.contrib import messages
+from django.core.urlresolvers import reverse
 
 # Create your views here.
 
 def index(request):
-    return render(request, 'login/index.html')
+    if 'user_id' in request.session:
+        return redirect(reverse('travel:index'))
+    else:
+        return render(request, 'login/index.html')
 
 def register(request):
-    user = User.objects.validateRegister(request.POST)
-    if user[0] == False:
-        for error in user[1]:
-            messages.error(request, error)
-        return redirect('/')
+    result = User.objects.register(request.POST)
+    if result[0] == True:
+        request.session['user_id'] = result[1].id
+        messages.success(request, "Hello! You have successfully registered! Now please log in.")
+        return redirect(reverse('login:index'))
     else:
-        request.session['id'] = user[1].id
-        print "Welcome User", request.session['id']
-        context = {
-        'users': User.objects.get(email=request.POST['email'])
-        }
-        return redirect("/success")
+        for error in result[1]:
+            messages.error(request, error)
+        return redirect(reverse('login:index'))
 
 def login(request):
-    user = User.objects.loginValidate(request.POST)
-    if user[0] == False:
-        for error in user[1]:
-            messages.error(request, error)
-        return redirect('/')
+    result = User.objects.login(request.POST)
+    if result[0] == True:
+        request.session['user_id'] = result[1].id
+        return redirect(reverse('travel:index'))
     else:
-        print "We made it"
-        if 'id' not in request.session:
-            request.session['id'] = user[1].id
-        print "got session", request.session['id']
-        context = {
-        'users': User.objects.get(email=request.POST['email'])
-        }
-        return redirect("/success")
-
-def success(request):
-    user = User.objects.get(id=request.session['id'])
-    context = {
-    'users': user
-    # 'posts': Post.objects.all(),
-    # 'posts': Post.objects.annotate(num_likes=Count('likes'))
-    }
-    return render(request, 'login/home_page.html', context)
-
+        for error in result[1]:
+            messages.error(request, error)
+        return redirect(reverse('login:index'))
 
 def logout(request):
-    request.session.pop('id')
-    return render(request, 'login/index.html')
+    if 'user_id' in request.session:
+        del request.session['user_id']
+        messages.success(request, "You have been successfully logged out")
+        return redirect(reverse('login:index'))

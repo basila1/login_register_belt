@@ -1,31 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <title>Login and Registration</title>
     <meta charset="utf-8">
-    <title>Login and Register</title>
+    {% load staticfiles %}
+    <!-- Compiled and minified CSS -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+
   </head>
   <body>
-    {% if messages %}
-      <ul class="messages">
-          {% for message in messages %}
-          <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
-          {% endfor %}
-      </ul>
-      {% endif %}
-    <form action="register" method="post">
-      {% csrf_token %}
-      <label> First Name: <input type="text" name="first_name"></label>
-      <label for="">Last Name: <input type="text" name="last_name"></label>
-      <label for="">Email: <input type="text" name="email"></label>
-      <label for="">Password: <input type="password" name="password"></label>
-      <label for="">Confirm Password: <input type="password" name="confirm"></label>
-      <input type="submit" value="Register">
-    </form>
-    <form action="login" method="post">
-      {% csrf_token %}
-      <label for="">Email: <input type="text" name="email"></label>
-      <label for="">Password: <input type="password" name="password"></label>
-      <input type="submit" value="Login">
-    </form>
+    <div id="wrapper">
+      <div class="message">
+        {% if messages %}
+            {% for message in messages %}
+                <li>{{message}}</li>
+            {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="register">
+        <h1>Register</h1>
+        <form class="" action="{% url 'login:register' %}" method="post">
+          {% csrf_token %}
+          First Name: <input type="text" name="first_name" placeholder="First Name"><br>
+          Last Name: <input type="text" name="last_name" placeholder="Last Name"><br>
+          Email: <input type="text" name="email" placeholder="Email"><br>
+          Password: <input type="password" name="password" placeholder="Password"><br>
+          Confirm Password: <input type="password" name="confirm" placeholder="Confirm Password"><br>
+          <input type="submit" value="Register" class="button button-primary">
+        </form>
+      </div>
+
+      <div class="login">
+        <h1>Login</h1>
+        <form class="" action="{% url 'login:login' %}" method="post">
+          {% csrf_token %}
+          Email: <input type="text" name="email" placeholder="Email"><br>
+          Password: <input type="password" name="password" placeholder="Password"><br>
+          <input type="submit" value="Login" class="button button-primary">
+        </form>
+      </div>
+    </div>
   </body>
 </html>

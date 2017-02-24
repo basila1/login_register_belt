@@ -1,84 +1,72 @@
 from __future__ import unicode_literals
-
 from django.db import models
-import bcrypt
-import re
+import bcrypt, re
 
-Email_Regex = re.compile (r'^[a-zA-Z0-9.+_]+@[a-zA-Z0-9._-]+[a-zA-Z]+$')
+email_regex = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
 Name_Regex = re.compile (r'^[a-zA-Z]+$')
 
-class Manager(models.Manager):
-    def validateRegister(self, postData):
-        status = True
-        errorlist = []
+
+# Create your models here.
+class UserManager(models.Manager):
+    def register(self, postData):
+        errors = []
+
+        if len(postData['first_name']) < 2:
+            errors.append('First Name must have at least 2 characters!')
+
+        if len(postData['last_name']) < 2:
+            errors.append('Last Name must have at least 2 characters')
+
         if not Name_Regex.match(postData['first_name']):
-            errorlist.append("Must provide valid first name!")
-            status = False
-        if len(postData['first_name']) < 2 or len(postData['last_name']) < 2:
-            errorlist.append("Name must have at least 2 letters!")
-            status = False
+            errors.append("Must provide a valid first name!")
+
         if not Name_Regex.match(postData['last_name']):
-            errorlist.append("Must provide valid last name!")
-            status = False
-        if not Email_Regex.match(postData['email']):
-            errorlist.append("Must provide a valid email!")
-            status = False
-        if len(postData['password']) < 8:
-            errorlist.append("Password must be at least 8 characters!")
-            status = False
+            errors.append("Must provide a valid last name!")
+
+        if not email_regex.match(postData['email']):
+            errors.append('Not a valid email')
+
+        if len(postData['email']) == 0:
+            errors.append('Please enter an email')
+
         if postData['password'] != postData['confirm']:
-            errorlist.append("Passwords must match!")
-            status = False
-        if len(User.objects.filter(email=postData['email'])) > 0:
-            errorlist.append("Email is already registered!")
-            status = False
-        if status == False:
-            return (False, errorlist)
-        else:
-            password = postData['password']
-            hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-            newuser = User.objects.create(first_name=postData['first_name'], last_name=postData['last_name'], email=postData['email'], password=hashed)
-            return (True, newuser)
+            errors.append('Passwords do not match. Try again')
 
-    def loginValidate(self, postData):
-        olduser = User.objects.filter(email=postData['email'])
-        status = True
-        errorlist = []
-        if len(olduser) < 1:
-            errorlist.append("Must register!")
-            status = False
-        if len(postData['email']) < 1:
-            errorlist.append("Must provide a valid email!")
-            status = False
-        if len(postData['password']) < 1:
-            errorlist.append("Must provide a valid password")
-            status = False
-        if status == False:
-            return (False, errorlist)
+        if len(postData['password']) < 8:
+            errors.append('Password must be at least 8 characters')
+
+        same = User.objects.filter(email=postData['email'])
+        if same:
+            errors.append('Email is already in use')
+
+        if len(errors) == 0:
+            pwHash = bcrypt.hashpw(postData['password'].encode(), bcrypt.gensalt().encode())
+            user = User.objects.create(first_name=postData['first_name'], last_name=postData['last_name'], email=postData['email'], password=pwHash)
+            return (True, user)
+
         else:
-            if bcrypt.hashpw(postData['password'].encode(), olduser[0].password.encode()) == olduser[0].password:
-                return (True, olduser[0])
+            return (False, errors)
+
+    def login(self, postData):
+        errors = []
+        user = User.objects.filter(email=postData['email'])
+        if user.exists():
+            InputPw = postData['password'].encode()
+            HashPw = user[0].password.encode()
+
+            if bcrypt.checkpw(InputPw, HashPw):
+                return (True, user[0])
             else:
-                errorlist.append("Incorrect Password")
-                return (False, errorlist)
-
-    # def addInterest(self, postData):
-    #     if not Name_Regex.match(postData['interest']):
-    #         status = False
-    #     if status == False:
-    #         return errorlist
-    #     else:
-    #         Interest.objects.create(interest_name=request.POST['interest'])
-    #         interest = Interest.objects.filter(request.POST['interest'])
-    #         interest.objects.users.add(user)
-    #         return True
-
+                errors.append(("Email or password doesn't exist!"))
+        else:
+            errors.append(("Email or password doesn't exist!"))
+        return (False, errors)
 
 class User(models.Model):
-    objects = Manager()
-    first_name = models.CharField(max_length=35)
-    last_name = models.CharField(max_length=35)
-    email = models.EmailField(max_length=100)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email = models.EmailField()
     password = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    objects = UserManager()
