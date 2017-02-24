@@ -1,0 +1,15 @@
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Welcome</title>
+    </head>
+    <body>
+      <form action="logout" method="post" >
+        {% csrf_token %}
+        <input type="submit" name="" value="Logout">
+      </form>
+      <h1>Welcome {{users.first_name}}</h1>
+
+    </body>
+  </html>
